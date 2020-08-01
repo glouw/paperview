@@ -30,3 +30,8 @@ Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
     A lower SPEED number will result in a faster frame rate.
 
     Only BITMAP files are supported.
+
+## Disclaimer
+
+The art images included here I do not own.
+They are for educational purposes only to demo the workings of paperview.
