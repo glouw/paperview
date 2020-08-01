@@ -12,3 +12,11 @@ clean:
 
 love:
 	@echo "not war?"
+
+install:
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp -f $(BIN) $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/$(BIN)
+
+uninstall:
+	rm $(DESTDIR)$(PREFIX)/bin/$(BIN)
