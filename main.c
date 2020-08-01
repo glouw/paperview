@@ -1,6 +1,8 @@
 #include <SDL2/SDL.h>
 #include <X11/Xlib.h>
 #include <dirent.h>
+#include <unistd.h>
+
 
 typedef struct
 {
@@ -130,14 +132,16 @@ int main(int argc, char* argv[])
     Video video = Setup();
     Paths paths = Populate(base);
     Textures textures = Cache(&paths, video.renderer);
-    for(int32_t cycles = 0; /* TRUE */; cycles++)
+
+    int32_t framerate = 1000000 / speed;
+    for(uint32_t cycles = 0; /* TRUE */; cycles++)
     {
-        const int32_t index = cycles / speed;
-        const int32_t frame = index % textures.size;
+        const int32_t frame = cycles % textures.size;
         SDL_RenderCopy(video.renderer, textures.texture[frame], NULL, NULL);
         SDL_RenderPresent(video.renderer);
         SDL_Event event;
         SDL_PollEvent(&event);
+        usleep(framerate);
         if(event.type == SDL_QUIT)
             break;
     }

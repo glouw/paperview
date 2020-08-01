@@ -1,5 +1,5 @@
 LDFLAGS = -lSDL2 -lX11
-CC = gcc -std=c99
+CC = gcc -std=gnu99
 CFLAGS = -O2 -Wall -Wextra -Wpedantic
 BIN = paperview
 SRC = main.c
