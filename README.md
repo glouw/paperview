@@ -25,7 +25,7 @@ Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
         ./paperview FOLDER SPEED
 
     For example:
-        ./paperview scenes/train 5
+        ./paperview scenes/castle 5
 
     A lower SPEED number will result in a faster frame rate.
 
