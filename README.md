@@ -5,7 +5,7 @@ drain your laptop battery, or lower ya vidya game FPS.
 
 ![](screenshot.png)
 
-Now imagine the above desktop background, moving, JUST LIKE THIS: https://www.youtube.com/watch?v=6ZTiA885bWM
+Now imagine the above desktop background, moving, just list this: https://www.youtube.com/watch?v=6ZTiA885bWM
 
 Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
 
