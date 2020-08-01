@@ -122,11 +122,7 @@ int main(int argc, char* argv[])
     {
         puts(
             "./paperview train 5\n"
-            "./paperview FOLDER SPEED\n"
-            "The lower the SPEED integer, the faster the animation.\n"
-            "The lowest allowed SPEED value is 1, and the highest is your monitor refresh rate in HZ (eg. 60 or 144).\n"
-            "A SPEED value of -1 will present a still frame.\n"
-            "FOLDER must contain only BMP images sorted in alaphbetical order;\n");
+            "./paperview FOLDER SPEED\n");
         return 1;
     }
     const char* const base = argv[1];

@@ -3,7 +3,7 @@
 A high performance animated desktop background setter for X11 that won't set your CPU on fire,
 drain your laptop battery, or lower ya vidya game FPS.
 
-![](http://i3.ytimg.com/vi/zzy8qFKfwCQ/hqdefault.jpg)
+![](screenshot.png)
 
 Video demo: https://www.youtube.com/watch?v=zzy8qFKfwCQ
 
@@ -25,6 +25,8 @@ Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
         ./paperview FOLDER SPEED
 
     For example:
-        ./paperview train 5
+        ./paperview scenes/train 5
 
     A lower SPEED number will result in a faster frame rate.
+
+    Only BITMAP files are supported.
