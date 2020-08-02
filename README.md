@@ -33,6 +33,13 @@ Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
 
     user: 1.904135s, sys: 0.357277s, elapsed: 100.458648s, CPU: 2.3%, GPU: 11.7%
 
+## Known Issues
+
+Picom (and possibly simliar compositors) seem to overwrite the base root X11 window.
+A pure X11 workaround can be found here:
+
+https://gist.github.com/AlecsFerra/ef1cc008990319f3b676eb2d8aa89903
+
 ## Disclaimer
 
 The art images included here I do not own.
