@@ -21,9 +21,8 @@ Video of the above screenshot: https://www.youtube.com/watch?v=6ZTiA885bWM
     For example:
         ./paperview scenes/castle 5
 
-    A lower SPEED number will result in a faster frame rate.
-
-Only BITMAP files are supported. Creating your own bitmap folders from gifs requires imagemagick to be installed:
+A lower SPEED number will result in a faster frame rate. Only BITMAP files are supported.
+Creating your own bitmap folders from gifs requires imagemagick to be installed:
 
     convert -coalesce your.gif out.bmp
 
