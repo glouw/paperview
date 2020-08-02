@@ -25,6 +25,12 @@ Video of the above screenshot: https://www.youtube.com/watch?v=6ZTiA885bWM
 
     Only BITMAP files are supported.
 
+Creating your own bitmap folders from gifs imagemagick to be installed:
+
+    convert -coalesce your.gif out.bmp
+
+Simply package it into a folder as folders must contain only bitmap images.
+
 ## Performance
 
 Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
