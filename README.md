@@ -7,12 +7,6 @@ drain your laptop battery, or lower ya vidya game FPS.
 
 Video of the above screenshot: https://www.youtube.com/watch?v=6ZTiA885bWM
 
-Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
-
-    intel_gpu_time ./paperview city 3
-
-    user: 1.904135s, sys: 0.357277s, elapsed: 100.458648s, CPU: 2.3%, GPU: 11.7%
-
 ## Build
 
     pacman -S sdl2
@@ -30,6 +24,14 @@ Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
     A lower SPEED number will result in a faster frame rate.
 
     Only BITMAP files are supported.
+
+## Performance
+
+Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
+
+    intel_gpu_time ./paperview scenes/castle 5
+
+    user: 1.904135s, sys: 0.357277s, elapsed: 100.458648s, CPU: 2.3%, GPU: 11.7%
 
 ## Disclaimer
 
