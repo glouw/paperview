@@ -51,7 +51,7 @@ static Paths Populate(const char* base)
         if(strstr(path, ".bmp"))
         {
             char* const slash = "/";
-            char* const buffer = malloc(strlen(base) + strlen(slash) + strlen(path) + 3);
+            char* const buffer = malloc(strlen(base) + strlen(slash) + strlen(path) + 1);
             strcpy(buffer, base);
             strcat(buffer, slash);
             strcat(buffer, path);
