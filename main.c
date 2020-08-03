@@ -45,7 +45,7 @@ static Paths Populate(const char* base)
     self.size = 0;
     self.path = malloc(max * sizeof(*self.path));
     DIR* const dir = opendir(base); 
-    for(struct dirent* entry; (entry = readdir(dir)); ) 
+    for(struct dirent* entry; (entry = readdir(dir));)
     {
         const char* const path = entry->d_name;
         if(strstr(path, ".bmp"))
