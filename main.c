@@ -120,9 +120,7 @@ int main(int argc, char* argv[])
 {
     if(argc != 3)
     {
-        puts(
-            "paperview scenes/castle 5\n"
-            "paperview FOLDER SPEED\n");
+        puts("paperview FOLDER SPEED\n");
         return 1;
     }
     const char* const base = argv[1];

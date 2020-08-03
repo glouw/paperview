@@ -26,10 +26,14 @@ Command line:
 
     ./paperview FOLDER SPEED
 
-A lower SPEED number will result in a faster frame rate. Only BITMAP files are supported.
-Creating your own bitmap folders from gifs requires imagemagick to be installed:
+A lower SPEED number will result in a faster frame rate. Only bitmap files are supported.
+Creating your own bitmap folders from gifs requires imagemagick. For example, creating
+a castle folder from castle.gif which you downloaded:
 
-    convert -coalesce your.gif out.bmp
+    mkdir castle
+    mv castle.gif castle
+    cd castle
+    convert -coalesce castle.gif out.bmp
 
 
 ## Performance
