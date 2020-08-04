@@ -34,6 +34,7 @@ a castle folder from castle.gif which you downloaded:
     mv castle.gif castle
     cd castle
     convert -coalesce castle.gif out.bmp
+    rm castle.gif
 
 
 ## Performance
