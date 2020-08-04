@@ -51,7 +51,22 @@ Running on a Thinkpad X230 from 2012 at 1920x1080 and 60fps:
 
 ## Known Issues
 
+### Picom
+
 Picom (and possibly simliar compositors) seem to overwrite the base root X11 window.
 A pure X11 workaround can be found here:
 
 https://gist.github.com/AlecsFerra/ef1cc008990319f3b676eb2d8aa89903
+
+### XFCE
+
+According to [andreldm](https://github.com/glouw/paperview/issues/3#issuecomment-668095609),
+for Xfce users, xfdesktop and compositing have to be disabled before running paperview:
+
+    xfdesktop -Q && xfconf-query --channel xfwm4 --property /general/use_compositing --type bool --set false
+
+### Windows
+
+If you are using windows, X11 is not easily supported. Here is a pure Windows alternative using SDL2:
+
+https://github.com/TrAyZeN/sdl-wallpaper
