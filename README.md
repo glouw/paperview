@@ -19,6 +19,9 @@ Video of the above screenshot: https://www.youtube.com/watch?v=6ZTiA885bWM
 
     nix-shell -p gnumake SDL2 --command make
 
+### guix
+
+    guix install paperview
 
 ## Use
 
