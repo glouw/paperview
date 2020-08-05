@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <X11/Xlib.h>
 #include <dirent.h>
+#include <stdarg.h>
 
 typedef struct
 {
@@ -24,6 +25,15 @@ typedef struct
 }
 Video;
 
+static void Quit(const char* const message, ...)
+{
+    va_list args;
+    va_start(args, message);
+    vfprintf(stdout, message, args);
+    va_end(args);
+    exit(1);
+}
+
 static int32_t Compare(const void* a, const void* b)
 {
     char* const pa = *(char**) a;
@@ -44,7 +54,9 @@ static Paths Populate(const char* base)
     Paths self;
     self.size = 0;
     self.path = malloc(max * sizeof(*self.path));
-    DIR* const dir = opendir(base); 
+    DIR* const dir = opendir(base);
+    if(dir == NULL)
+        Quit("Directory '%s' failed to open\n", base);
     for(struct dirent* entry; (entry = readdir(dir));)
     {
         const char* const path = entry->d_name;
@@ -83,7 +95,10 @@ static Textures Cache(Paths* paths, SDL_Renderer* renderer)
     self.texture = malloc(self.size * sizeof(*self.texture));
     for(size_t i = 0; i < self.size; i++)
     {
-        SDL_Surface* const surface = SDL_LoadBMP(paths->path[i]);
+        const char* const path = paths->path[i];
+        SDL_Surface* const surface = SDL_LoadBMP(path);
+        if(surface == NULL)
+            Quit("File '%s' failed to open. %s\n", path, SDL_GetError());
         self.texture[i] = SDL_CreateTextureFromSurface(renderer, surface);
         SDL_FreeSurface(surface);
     }
@@ -119,10 +134,7 @@ static void Teardown(Video* self)
 int main(int argc, char* argv[])
 {
     if(argc != 3)
-    {
-        puts("paperview FOLDER SPEED\n");
-        return 1;
-    }
+        Quit("paperview FOLDER SPEED\n");
     const char* const base = argv[1];
     const uint32_t speed = atoi(argv[2]);
     Video video = Setup();
@@ -142,5 +154,4 @@ int main(int argc, char* argv[])
     Destroy(&textures);
     Depopulate(&paths);
     Teardown(&video);
-    return 0;
 }
