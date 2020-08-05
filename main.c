@@ -50,13 +50,13 @@ static void Sort(Paths* self)
 
 static Paths Populate(const char* base)
 {
+    DIR* const dir = opendir(base);
+    if(dir == NULL)
+        Quit("Directory '%s' failed to open\n", base);
     size_t max = 8;
     Paths self;
     self.size = 0;
     self.path = malloc(max * sizeof(*self.path));
-    DIR* const dir = opendir(base);
-    if(dir == NULL)
-        Quit("Directory '%s' failed to open\n", base);
     for(struct dirent* entry; (entry = readdir(dir));)
     {
         const char* const path = entry->d_name;
@@ -137,6 +137,8 @@ int main(int argc, char* argv[])
         Quit("paperview FOLDER SPEED\n");
     const char* const base = argv[1];
     const uint32_t speed = atoi(argv[2]);
+    if(speed == 0)
+        Quit("Invalid speed value\n");
     Video video = Setup();
     Paths paths = Populate(base);
     Textures textures = Cache(&paths, video.renderer);
