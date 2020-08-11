@@ -41,7 +41,7 @@ which may overwrite the render done by paperview.
 
 Alternatively, if SDL2 is a problem, or if you are on Windows, two workarounds are currently available:
 
-### Pure X11 (without SDL2):
+### Pure X11 (without SDL2)
 
 https://gist.github.com/AlecsFerra/ef1cc008990319f3b676eb2d8aa89903
 
