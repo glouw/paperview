@@ -6,16 +6,25 @@
 typedef struct
 {
     char** path;
-    size_t size;
+    unsigned size;
 }
 Paths;
 
 typedef struct
 {
     SDL_Texture** texture;
-    size_t size;
+    unsigned size;
 }
 Textures;
+
+typedef struct View
+{
+    int speed;
+    Textures textures;
+    SDL_Rect* rect;
+    struct View* next;
+}
+View;
 
 typedef struct
 {
@@ -34,12 +43,12 @@ static void Quit(const char* const message, ...)
     exit(1);
 }
 
-static int32_t Compare(const void* a, const void* b)
+static int Compare(const void* a, const void* b)
 {
     char* const pa = *(char**) a;
     char* const pb = *(char**) b;
-    const size_t la = strlen(pa);
-    const size_t lb = strlen(pb);
+    const unsigned la = strlen(pa);
+    const unsigned lb = strlen(pb);
     return (la > lb) ? 1 : (la < lb) ? -1 : strcmp(pa, pb);
 }
 
@@ -53,7 +62,7 @@ static Paths Populate(const char* base)
     DIR* const dir = opendir(base);
     if(dir == NULL)
         Quit("Directory '%s' failed to open\n", base);
-    size_t max = 8;
+    unsigned max = 8;
     Paths self;
     self.size = 0;
     self.path = malloc(max * sizeof(*self.path));
@@ -83,7 +92,7 @@ static Paths Populate(const char* base)
 
 static void Depopulate(Paths* self)
 {
-    for(size_t i = 0; i < self->size; i++)
+    for(unsigned i = 0; i < self->size; i++)
         free(self->path[i]);
     free(self->path);
 }
@@ -93,7 +102,7 @@ static Textures Cache(Paths* paths, SDL_Renderer* renderer)
     Textures self;
     self.size = paths->size;
     self.texture = malloc(self.size * sizeof(*self.texture));
-    for(size_t i = 0; i < self.size; i++)
+    for(unsigned i = 0; i < self.size; i++)
     {
         const char* const path = paths->path[i];
         SDL_Surface* const surface = SDL_LoadBMP(path);
@@ -107,7 +116,7 @@ static Textures Cache(Paths* paths, SDL_Renderer* renderer)
 
 static void Destroy(Textures* self)
 {
-    for(size_t i = 0; i < self->size; i++)
+    for(unsigned i = 0; i < self->size; i++)
         SDL_DestroyTexture(self->texture[i]);
     free(self->texture);
 }
@@ -131,29 +140,92 @@ static void Teardown(Video* self)
     SDL_DestroyRenderer(self->renderer);
 }
 
-int main(int argc, char* argv[])
+static View* Init(const char* const base, const int speed, SDL_Rect* rect, Video* video)
 {
-    if(argc != 3)
-        Quit("paperview FOLDER SPEED\n");
-    const char* const base = argv[1];
-    const uint32_t speed = atoi(argv[2]);
-    if(speed == 0)
-        Quit("Invalid speed value\n");
-    Video video = Setup();
+    View* self = malloc(sizeof(*self));
+    self->speed = speed;
     Paths paths = Populate(base);
-    Textures textures = Cache(&paths, video.renderer);
-    for(int32_t cycles = 0; /* TRUE */; cycles++)
+    self->textures = Cache(&paths, video->renderer);
+    self->rect = rect;
+    Depopulate(&paths);
+    self->next = NULL;
+    return self;
+}
+
+static View* Push(View* views, View* view)
+{
+    view->next = views;
+    return view;
+}
+
+static void Cleanup(View* views)
+{
+    View* view = views;
+    while(view)
     {
-        const int32_t index = cycles / speed;
-        const int32_t frame = index % textures.size;
-        SDL_RenderCopy(video.renderer, textures.texture[frame], NULL, NULL);
+        View* next = view->next;
+        Destroy(&view->textures);
+        free(view->rect);
+        free(view);
+        view = next;
+    }
+}
+
+static View* Parse(int argc, char** argv, Video* video)
+{
+    const int args = argc - 1;
+    if(args < 2)
+        Quit("Usage: paperview FOLDER SPEED\n"); // LEGACY PARAMETER SUPPORT.
+    const int params = 6;
+    if(args > 2 && args % params != 0)
+        Quit("Usage: paperview FOLDER SPEED X Y W H FOLDER SPEED X Y W H # ... And so on\n"); // MULTI-MONITOR PARAMETER SUPPORT.
+    View* views = NULL;
+    for(int i = 1; i < argc; i += params)
+    {
+        const int a = i + 0;
+        const int b = i + 1;
+        const int c = i + 2;
+        const int d = i + 3;
+        const int e = i + 4;
+        const int f = i + 5;
+        const char* const base = argv[a];
+        int speed = atoi(argv[b]);
+        if(speed == 0)
+            Quit("Invalid speed value\n");
+        if(speed < 0)
+            speed = INT32_MAX; // NEGATIVE SPEED VALUES CREATE STILL WALLPAPERS.
+        SDL_Rect* rect = NULL;
+        if(c != argc)
+        {
+            rect = malloc(sizeof(*rect));
+            rect->x = atoi(argv[c]);
+            rect->y = atoi(argv[d]);
+            rect->w = atoi(argv[e]);
+            rect->h = atoi(argv[f]);
+        }
+        views = Push(views, Init(base, speed, rect, video));
+    }
+    return views;
+}
+
+int main(int argc, char** argv)
+{
+    Video video = Setup();
+    View* views = Parse(argc, argv, &video);
+    for(int cycles = 0; /* true */; cycles++)
+    {
+        for(View* view = views; view; view = view->next)
+        {
+            const int index = cycles / view->speed;
+            const int frame = index % view->textures.size;
+            SDL_RenderCopy(video.renderer, view->textures.texture[frame], NULL, view->rect);
+        }
         SDL_RenderPresent(video.renderer);
         SDL_Event event;
         SDL_PollEvent(&event);
         if(event.type == SDL_QUIT)
             break;
     }
-    Destroy(&textures);
-    Depopulate(&paths);
+    Cleanup(views);
     Teardown(&video);
 }
