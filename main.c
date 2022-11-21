@@ -1,6 +1,8 @@
 #include <SDL2/SDL.h>
+#include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <dirent.h>
+#include <stdbool.h>
 #include <stdarg.h>
 
 typedef struct
@@ -16,6 +18,22 @@ typedef struct
     unsigned size;
 }
 Textures;
+
+typedef struct ViewConfig
+{
+    int speed;
+    char* base;
+    SDL_Rect* rect;
+}
+ViewConfig;
+
+typedef struct Config
+{
+    bool create_desktop;
+    int view_count;
+    ViewConfig** views;
+}
+Config;
 
 typedef struct View
 {
@@ -121,11 +139,37 @@ static void Destroy(Textures* self)
     free(self->texture);
 }
 
-static Video Setup(void)
+static Window CreateDesktop(Display* x11d)
+{
+    const Window root = RootWindow(x11d, DefaultScreen(x11d));
+    int width = DisplayWidth(x11d, 0);
+    int height = DisplayHeight(x11d, 0);
+
+    const Window x11w = XCreateSimpleWindow(x11d, root, 0, 0, width, height, 1, BlackPixel(x11d, 0), WhitePixel(x11d, 0));
+
+    Atom atom_type = XInternAtom(x11d, "_NET_WM_WINDOW_TYPE", 0);
+    Atom atom_desktop = XInternAtom(x11d, "_NET_WM_WINDOW_TYPE_DESKTOP", 0);
+    XChangeProperty(x11d, x11w, atom_type, XA_ATOM, 32, PropModeReplace, &atom_desktop, 1);
+
+    XMapWindow(x11d, x11w);
+    XSync(x11d, 0);
+    return x11w;
+}
+
+static Window GetX11Window(Display* x11d, bool create_desktop)
+{
+    if(create_desktop)
+    {
+        return CreateDesktop(x11d);
+    }
+    return RootWindow(x11d, DefaultScreen(x11d));
+}
+
+static Video Setup(bool create_desktop)
 {
     Video self;
     self.x11d = XOpenDisplay(NULL);
-    const Window x11w = RootWindow(self.x11d, DefaultScreen(self.x11d));
+    const Window x11w = GetX11Window(self.x11d, create_desktop);
     SDL_Init(SDL_INIT_VIDEO);
     self.window = SDL_CreateWindowFrom((void*) x11w);
     self.renderer = SDL_CreateRenderer(self.window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -171,47 +215,68 @@ static void Cleanup(View* views)
     }
 }
 
-static View* Parse(int argc, char** argv, Video* video)
+static View* Load(int view_count, ViewConfig** configs, Video* video) {
+    View* views = NULL;
+    for(int i = 0; i < view_count; i += 1)
+    {
+        views = Push(views, Init(configs[i]->base, configs[i]->speed, configs[i]->rect, video));
+    }
+    return views;
+}
+
+static Config Parse(int argc, char** argv)
 {
-    const int args = argc - 1;
+    Config self;
+    self.create_desktop = strcmp(argv[1], "--create-desktop") == 0;
+
+    int arg_offset = 1;
+    if (self.create_desktop) {
+        arg_offset += 1;
+    }
+
+    const int args = argc - arg_offset;
     if(args < 2)
         Quit("Usage: paperview FOLDER SPEED\n"); // LEGACY PARAMETER SUPPORT.
     const int params = 6;
     if(args > 2 && args % params != 0)
-        Quit("Usage: paperview FOLDER SPEED X Y W H FOLDER SPEED X Y W H # ... And so on\n"); // MULTI-MONITOR PARAMETER SUPPORT.
-    View* views = NULL;
-    for(int i = 1; i < argc; i += params)
+        Quit("Usage: paperview [--create-desktop] FOLDER SPEED X Y W H FOLDER SPEED X Y W H # ... And so on\n"); // MULTI-MONITOR PARAMETER SUPPORT.
+
+    self.view_count = args / params;
+    self.views = malloc(self.view_count * sizeof(self.views));
+    for(int i = arg_offset; i < argc; i += params)
     {
+        const int view_num = (i-arg_offset) / params;
         const int a = i + 0;
         const int b = i + 1;
         const int c = i + 2;
         const int d = i + 3;
         const int e = i + 4;
         const int f = i + 5;
-        const char* const base = argv[a];
-        int speed = atoi(argv[b]);
-        if(speed == 0)
+        ViewConfig* view = malloc(sizeof(*view));
+        view->base = argv[a];
+        view->speed = atoi(argv[b]);
+        if(view->speed == 0)
             Quit("Invalid speed value\n");
-        if(speed < 0)
-            speed = INT32_MAX; // NEGATIVE SPEED VALUES CREATE STILL WALLPAPERS.
-        SDL_Rect* rect = NULL;
+        if(view->speed < 0)
+            view->speed = INT32_MAX; // NEGATIVE SPEED VALUES CREATE STILL WALLPAPERS.
         if(c != argc)
         {
-            rect = malloc(sizeof(*rect));
-            rect->x = atoi(argv[c]);
-            rect->y = atoi(argv[d]);
-            rect->w = atoi(argv[e]);
-            rect->h = atoi(argv[f]);
+            view->rect = malloc(sizeof(*view->rect));
+            view->rect->x = atoi(argv[c]);
+            view->rect->y = atoi(argv[d]);
+            view->rect->w = atoi(argv[e]);
+            view->rect->h = atoi(argv[f]);
         }
-        views = Push(views, Init(base, speed, rect, video));
+        self.views[view_num] = view;
     }
-    return views;
+    return self;
 }
 
 int main(int argc, char** argv)
 {
-    Video video = Setup();
-    View* views = Parse(argc, argv, &video);
+    Config config = Parse(argc, argv);
+    Video video = Setup(config.create_desktop);
+    View* views = Load(config.view_count, config.views, &video);
     for(int cycles = 0; /* true */; cycles++)
     {
         for(View* view = views; view; view = view->next)
