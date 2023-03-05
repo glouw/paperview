@@ -2,6 +2,8 @@
 #include <X11/Xlib.h>
 #include <dirent.h>
 #include <stdarg.h>
+#include <unistd.h>
+#include <getopt.h>
 
 typedef struct
 {
@@ -121,11 +123,11 @@ static void Destroy(Textures* self)
     free(self->texture);
 }
 
-static Video Setup(void)
+static Video Setup(Window x11w)
 {
     Video self;
     self.x11d = XOpenDisplay(NULL);
-    const Window x11w = RootWindow(self.x11d, DefaultScreen(self.x11d));
+    if (!x11w) x11w = RootWindow(self.x11d, DefaultScreen(self.x11d));
     SDL_Init(SDL_INIT_VIDEO);
     self.window = SDL_CreateWindowFrom((void*) x11w);
     self.renderer = SDL_CreateRenderer(self.window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -171,16 +173,16 @@ static void Cleanup(View* views)
     }
 }
 
-static View* Parse(int argc, char** argv, Video* video)
+static View* Parse(int start, int argc, char** argv, Video* video)
 {
-    const int args = argc - 1;
+    const int args = argc - start;
     if(args < 2)
-        Quit("Usage: paperview FOLDER SPEED\n"); // LEGACY PARAMETER SUPPORT.
+        Quit("Usage: paperview [-w WINDOW-ID] [--] FOLDER SPEED\n"); // LEGACY PARAMETER SUPPORT.
     const int params = 6;
     if(args > 2 && args % params != 0)
-        Quit("Usage: paperview FOLDER SPEED X Y W H FOLDER SPEED X Y W H # ... And so on\n"); // MULTI-MONITOR PARAMETER SUPPORT.
+        Quit("Usage: paperview [-w WINDOW-ID] [--] FOLDER SPEED X Y W H FOLDER SPEED X Y W H # ... And so on\n"); // MULTI-MONITOR PARAMETER SUPPORT.
     View* views = NULL;
-    for(int i = 1; i < argc; i += params)
+    for(int i = start; i < argc; i += params)
     {
         const int a = i + 0;
         const int b = i + 1;
@@ -210,8 +212,21 @@ static View* Parse(int argc, char** argv, Video* video)
 
 int main(int argc, char** argv)
 {
-    Video video = Setup();
-    View* views = Parse(argc, argv, &video);
+    Window window = 0;
+    int option;
+
+    while ((option = getopt(argc, argv, "w:")) != -1)
+         switch (option)
+         {
+         case 'w':
+            window = strtoul(optarg, NULL, 0);
+            break;
+         default:
+            abort();
+         }
+    
+    Video video = Setup(window);
+    View* views = Parse(optind, argc, argv, &video);
     for(int cycles = 0; /* true */; cycles++)
     {
         for(View* view = views; view; view = view->next)
