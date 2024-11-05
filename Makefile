@@ -1,10 +1,10 @@
-LDFLAGS = -lSDL2 -lX11
+LDFLAGS = -lSDL2 -lX11 -lGL
 CC = gcc -std=c99
 CFLAGS = -O2 -Wall -Wextra -Wpedantic
 BIN = paperview
 SRC = main.c
 
-$(BIN) : $(SRC) Makefile
+$(BIN): $(SRC) Makefile
 	$(CC) $(CFLAGS) $(SRC) $(LDFLAGS) -o $(BIN)
 
 install: $(BIN)
